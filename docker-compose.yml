@@ -1,0 +1,45 @@
+version: '3.7'
+
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app_image
+    command: ["/scripts/docker/wait_for_it.sh", "database:3306", "--", "/scripts/docker/docker_start.sh"]
+    depends_on:
+      - database
+    ports:
+    - 8000:8000
+    env_file:
+      - .env
+    volumes:
+    - ./requirements.txt:/requirements.txt
+    - ./static_my_project:/static_my_project
+    - ./src:/app
+
+  database:
+    image: mysql:8.0
+    container_name: app__database
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    volumes:
+    - app_db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=app_db
+      - MYSQL_DATABASE=app_db
+      - MYSQL_USER=app_db
+      - MYSQL_PASSWORD=app_db
+    ports:
+    - 3306:3306
+
+  adminer:
+    image: adminer:latest
+    restart: always
+    ports:
+    - 8080:8080
+
+
+volumes:
+  app_db:
